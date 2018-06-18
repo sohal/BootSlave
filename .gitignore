@@ -1,0 +1,21 @@
+#########################
+# .gitignore File For Bootloader
+# FRANKA EMIKA GmbH 2018
+# Erman Oezdemir, Sohal Patel
+#########################
+
+# Compiler outputs
+Listings
+Objects
+
+# User GUI information - changes with every developer & pc
+*.uvguix.*
+
+# During debug sessions EventRecorderStub is generated
+EventRecorderStub.*
+
+# Temporary files generated during autosaves and such
+*.TMP
+
+# Debugger settings for Jlink
+JLink*.*
