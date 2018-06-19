@@ -79,10 +79,11 @@
 #define BSP_TARGET_CAN_ID_BASE              (8U)
 
 /** Interface Ports, Pins and configuration in targets for SPI bus communication */
-#define BSP_TARGET_SPI_PORT                 (GPIOB)
-#define BSP_TARGET_SPI_MISO_PIN             (4U)
-#define BSP_TARGET_SPI_MOSI_PIN             (5U)
-#define BSP_TARGET_SPI_CLK_PIN              (3U)
+#define BSP_TARGET_SPI_PORT                 (GPIOA)
+#define BSP_TARGET_SPI_NSS_PIN							(4U)
+#define BSP_TARGET_SPI_CLK_PIN              (5U)
+#define BSP_TARGET_SPI_MOSI_PIN             (6U)
+#define BSP_TARGET_SPI_MISO_PIN             (7U)
 
 #define BSP_CHECK_PORT                      (GPIOA)
 #define BSP_CHECK_PIN_6                     (6U)

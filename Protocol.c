@@ -46,7 +46,20 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
     uint16_t crcCalculated = 0U;
     static uint32_t tickCounter = 0U;
     static uint32_t stickyTimer = 0U;
-
+	
+		while(1)
+		{
+				if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
+				{
+						if(Command.receivedvalue == eCMD_BootloadMode)
+						{
+								stateNext = eFlashEraseCMD;
+								tickCounter = 0;
+								Command.returnValue = eRES_Ready;
+								pBSP->pSend(Command.bufferCMD, 2);
+						}
+				}
+		}
     switch(stateNow)
     {
         case eDefaultState:
