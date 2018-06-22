@@ -117,7 +117,7 @@ void SpiInit(tBSPType BSPType)
 *******************************************************************************/
 void SpiSend(uint8_t *pTxData, uint16_t size)
 {
-    uint8_t tmp;
+    volatile uint16_t tmp;
     uint16_t i = 0;
     while (i < size)
 		{
@@ -147,19 +147,39 @@ void SpiSend(uint8_t *pTxData, uint16_t size)
 *******************************************************************************/
 eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
 {
-
+		volatile uint16_t tmp;
+		static uint16_t timeout = 0U;
     eFUNCTION_RETURN retVal = eFunction_Timeout;
 
     if((SPI1->SR & SPI_SR_RXNE) == SPI_SR_RXNE)
     {
         pRxData[index] = (uint8_t)SPI1->DR;
         index++;
+				timeout = 0U;
     }
+		else
+		{
+				if(size > 2U)
+				{
+						timeout++;
+						if(timeout > 0x1FFU)
+						{
+								timeout = 0;
+								SpiReset();
+						}
+			  }
+		}
 
     if(index >= size)
     {
         index = 0;
         retVal = eFunction_Ok;
+				while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
+				{
+						tmp = SPI1->DR;
+						tmp = SPI1->SR;
+						(void)tmp;
+				}
     }
 
     return retVal;
@@ -177,6 +197,13 @@ eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
 inline void SpiReset(void)
 {
     index = 0;
+		volatile uint16_t tmp;
+		while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
+		{
+				tmp = SPI1->DR;
+				tmp = SPI1->SR;
+				(void)tmp;
+		}
 }
 
 

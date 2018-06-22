@@ -47,19 +47,6 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
     static uint32_t tickCounter = 0U;
     static uint32_t stickyTimer = 0U;
 	
-		while(1)
-		{
-				if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
-				{
-						if(Command.receivedvalue == eCMD_BootloadMode)
-						{
-								stateNext = eFlashEraseCMD;
-								tickCounter = 0;
-								Command.returnValue = eRES_Ready;
-								pBSP->pSend(Command.bufferCMD, 2);
-						}
-				}
-		}
     switch(stateNow)
     {
         case eDefaultState:
@@ -114,13 +101,14 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                     pktCounter = 0;
                     Command.returnValue = eRES_OK;
                     pBSP->pSend(Command.bufferCMD, 2);
+										pBSP->pReset();
                 }
             }
             break;
 
         case ePayloadReceive:
             retVal = pBSP->pRecv(Payload.bufferPLD, sizeof(tPldUnion));
-            if((pktCounter == Payload.packet.u16SeqCnt) && (retVal == eFunction_Ok))
+            if(retVal == eFunction_Ok)
             {
                 stateNext = ePayloadCheck;
                 tickCounter = 0;
@@ -153,24 +141,25 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             break;
 
         case ePayloadCheck:
-            crcCalculated = CRCCalc16(Payload.packet.u8Data,64, 0);
+            crcCalculated = CRCCalc16(Payload.packet.u8Data, 66U, 0);
             if(crcCalculated == Payload.packet.u16CRC)
             {
-                if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE, pktCounter))
+                if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt))
                 {
-                        Command.returnValue = eRES_OK;
-                        pktCounter++;
+                    Command.returnValue = eRES_OK;
+										pktCounter = Payload.packet.u16SeqCnt++;
                 }
             }else
             {
+								pBSP->pReset();
                 Command.returnValue = eRES_Error;
             }
 
             stateNext = ePayloadReceive;
             Payload.packet.u16SeqCnt = 0xFFFFU;
             Payload.packet.u16CRC = 0xFFFFU;
+						crcCalculated = 0x0000U;
             pBSP->pSend(Command.bufferCMD, 2);
-
             break;
 
         case eWriteAppCRC:
@@ -245,7 +234,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
      */
     if(stateNext == stateNow)
     {
-        stickyTimer++;
+        //sohal stickyTimer++;
         /* If the timeout has expired, we reboot the system */
         if(stickyTimer > pBSP->BootTimeoutTicks)
         {
