@@ -28,7 +28,7 @@ static uint16_t index = 0U;
 *******************************************************************************/
 void SpiInit(tBSPType BSPType)
 {
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOBEN;
 
     BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_CLK_PIN >> 3U] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_CLK_PIN) & (uint32_t)0x07) << 2));
     BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_CLK_PIN >> 3U] |=  ((uint32_t)(GPIO_AF_0) << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_CLK_PIN) & (uint32_t)0x07) << 2));
@@ -39,8 +39,8 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_MOSI_PIN >> 3U] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_MOSI_PIN) & (uint32_t)0x07) << 2));
     BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_MOSI_PIN >> 3U] |=  ((uint32_t)(GPIO_AF_0) << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_MOSI_PIN) & (uint32_t)0x07) << 2));
 
-    BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
-    BSP_TARGET_SPI_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] |=  ((uint32_t)(GPIO_AF_0) << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
+    BSP_TARGET_SPI_NSS_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
+    BSP_TARGET_SPI_NSS_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] |=  ((uint32_t)(GPIO_AF_0) << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
 
 		BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_CLK_PIN << 1));
     BSP_TARGET_SPI_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_CLK_PIN << 1));
@@ -51,8 +51,8 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_MOSI_PIN << 1));
 		
-		BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
-    BSP_TARGET_SPI_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_NSS_PIN << 1));
+		BSP_TARGET_SPI_NSS_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
+    BSP_TARGET_SPI_NSS_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_NSS_PIN << 1));
 		
     BSP_TARGET_SPI_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_CLK_PIN));
     BSP_TARGET_SPI_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_CLK_PIN));
@@ -63,8 +63,8 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_MOSI_PIN));
     BSP_TARGET_SPI_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_MOSI_PIN));
 
-    BSP_TARGET_SPI_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
-    BSP_TARGET_SPI_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
+    BSP_TARGET_SPI_NSS_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
+    BSP_TARGET_SPI_NSS_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
 		
     BSP_TARGET_SPI_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_CLK_PIN << 1));
     BSP_TARGET_SPI_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_CLK_PIN << 1));
@@ -75,8 +75,8 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_MOSI_PIN << 1));
 		
-    BSP_TARGET_SPI_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_NSS_PIN << 1));
-    BSP_TARGET_SPI_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_NSS_PIN << 1));
+    BSP_TARGET_SPI_NSS_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_NSS_PIN << 1));
+    BSP_TARGET_SPI_NSS_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_NSS_PIN << 1));
 
     BSP_TARGET_SPI_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_CLK_PIN << 1));
     BSP_TARGET_SPI_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_CLK_PIN << 1));
@@ -87,8 +87,8 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_MOSI_PIN << 1));
 		
-		BSP_TARGET_SPI_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
-    BSP_TARGET_SPI_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_NSS_PIN << 1));
+		BSP_TARGET_SPI_NSS_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
+    BSP_TARGET_SPI_NSS_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_NSS_PIN << 1));
 
     /*! Enable SPI1 peripheral */
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
@@ -99,8 +99,7 @@ void SpiInit(tBSPType BSPType)
 								SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0; 
     /*! SPI peripheral is set in slave mode */ 
     SPI1->CR1 = SPI_CR1_SPE |  /*! SPI is enabled in the hardware module */
-                               /*! Software management is selected for Chip Select */
-                SPI_CR1_CPOL;  /*! Chip select is active low */
+                SPI_CR1_CPOL;  /*! Clock polarity is set */
 }
 
 /******************************************************************************/
