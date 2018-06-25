@@ -114,30 +114,30 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 tickCounter = 0;
             }
 
-            if(Payload.packet.u16CRC == 0xFFFFU)
-            {
-                if(Payload.packet.u16SeqCnt == 0xFFFFU)
-                {
-                    if(Payload.packet.u8Data[0] == (uint8_t)(eCMD_WriteCRC & 0x00FFU))
-                    {
-                        if(Payload.packet.u8Data[1] == (uint8_t)((eCMD_WriteCRC >> 8) & 0x00FFU))
-                        {
-                            if(tickCounter > pBSP->TwoBytesTicks)
-                            {
-                                AppData.Firmware.u16FWCRC = 0xFFFFU;
-                                AppData.Firmware.u16FWLen = 0xFFFFU;
-                                stateNext = eWriteAppCRC;
-                                pBSP->pReset();
-                                Command.returnValue = eRES_OK;
-                                pBSP->pSend(Command.bufferCMD,2);
-                            }else
-                            {
-                                tickCounter++;
-                            }
-                        }
-                    }
-                }
-            }
+//            if(Payload.packet.u16CRC == 0xFFFFU)
+//            {
+//                if(Payload.packet.u16SeqCnt == 0xFFFFU)
+//                {
+//                    if(Payload.packet.u8Data[0] == (uint8_t)(eCMD_WriteCRC & 0x00FFU))
+//                    {
+//                        if(Payload.packet.u8Data[1] == (uint8_t)((eCMD_WriteCRC >> 8) & 0x00FFU))
+//                        {
+//                            if(tickCounter > pBSP->TwoBytesTicks)
+//                            {
+//                                AppData.Firmware.u16FWCRC = 0xFFFFU;
+//                                AppData.Firmware.u16FWLen = 0xFFFFU;
+//                                stateNext = eWriteAppCRC;
+//                                pBSP->pReset();
+//                                Command.returnValue = eRES_OK;
+//                                pBSP->pSend(Command.bufferCMD,2);
+//                            }else
+//                            {
+//                                tickCounter++;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
             break;
 
         case ePayloadCheck:
