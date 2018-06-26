@@ -17,9 +17,8 @@
 /* *********************** Global data definitions ****************************/
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
-static tCmdUnion        Command;
-static tPldUnion        Payload;
-//static tAppDataUnion    AppData;
+static tCmdUnion         Command;
+static tPldUnion         Payload;
 static volatile uint32_t *AppVectorsInFlash = (volatile uint32_t *)BSP_ABSOLUTE_APP_START;
 static volatile uint32_t *AppVectorsInRAM   = (volatile uint32_t *)BSP_ABSOLUTE_SRAM_START;
 /* *************** Modul global constants ( static const ) ********************/
@@ -40,12 +39,12 @@ static volatile uint32_t *AppVectorsInRAM   = (volatile uint32_t *)BSP_ABSOLUTE_
 *******************************************************************************/
 eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 {
-    eFUNCTION_RETURN   retVal = eFunction_Ok;
-    static tProtoState stateNow, stateNext;
-    uint16_t          crcCalculated = 0U;
-    static uint32_t   tickCounter = 0U;
-    static uint32_t   stickyTimer = 0U;
-		eFlashError_t     eFlashError = eFlash_OK;
+    eFUNCTION_RETURN    retVal = eFunction_Ok;
+    static tProtoState  stateNow, stateNext;
+    uint16_t            crcCalculated = 0U;
+    static uint32_t     tickCounter = 0U;
+    static uint32_t     stickyTimer = 0U;
+    eFlashError_t       eFlashError = eFlash_OK;
 	
     switch(stateNow)
     {
@@ -61,15 +60,15 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 }
             }else
             {
-//                if(tickCounter > pBSP->AppStartTicks)
-//                {
-//                    stateNext = eFlashVerifyApplication;
-//                    tickCounter = 0;
-//                }else
-//                {
-//                    tickCounter++;
-//                    stateNext = eDefaultState;
-//                }
+                if(tickCounter > pBSP->AppStartTicks)
+                {
+                    stateNext = eFlashVerifyApplication;
+                    tickCounter = 0;
+                }else
+                {
+                    tickCounter++;
+                    stateNext = eDefaultState;
+                }
             }
             break;
 
@@ -218,7 +217,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
      */
     if(stateNext == stateNow)
     {
-        //sohal stickyTimer++;
+        stickyTimer++;
         /* If the timeout has expired, we reboot the system */
         if(stickyTimer > pBSP->BootTimeoutTicks)
         {
