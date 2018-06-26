@@ -45,18 +45,16 @@ void FlashInit(tBSPType BSPType)
 
 /******************************************************************************/
 /**
-* uint8_t FlashWrite(uint8_t* buf, uint16_t size)
+* eFlashError_t FlashWrite(uint8_t* buf, uint16_t size)
 * @brief Write to Flash and lock it afterwards.
 *
 * @param[in] buf pointer to data to be written to flash
 * @param[in] size number of bytes
 * @param[in] packet number
-* @returns   1 if successful
-*            or
-*            0 if an error occurs.
+* @returns   eFlash_OK if successful
 *
 *******************************************************************************/
-uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
+eFlashError_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
 {
     uint16_t i = 0;
     uint32_t flashWait = BootTIMEOUT;
@@ -67,8 +65,9 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
      */
     if((size > 1024UL) || (size == 0) || (buf == NULL))
     {
-        return 0;
+        return eFlash_AddressError;
     }
+    
     // Program Flash Page
     FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
     while(i < size) 
@@ -82,14 +81,14 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
             if(!(flashWait--))
             {
                 /** Return if the busy wait timer expires */
-                return 0;
+                return eFlash_WriteTimeOut;
             }
         }
         FLASH->CR &= ~FLASH_CR_PG;
         if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
         {
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-            return 0;
+            return eFlash_WriteError;
         }
         i += sizeof(uint16_t);
     }
@@ -100,24 +99,27 @@ uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo)
     {
         if(*p16++ != ((uint16_t)(buf[i+1] << 8) | buf[i]))
         {
-            return 0;
+            return eFlash_ReadError;
         }
         i += sizeof(uint16_t);
     }
-    return 1;
+    /** Check if the pointer is pointing at the last address of Program Flash */
+    if(p16 == (uint16_t*)(FlashSettings.LENinFlash + sizeof(uint16_t)))
+    {
+        return eFlash_LastAddress;
+    }
+    return eFlash_OK;
 }
 
 /******************************************************************************/
 /**
-* uint8_t FlashErase(void)
+* eFlashError_t FlashErase(void)
 * @brief Erase Flash from start of application to the last page, each page is 1kB.
 *
-* @returns   1 if successful
-*            or
-*            0 if an error occurs.
+* @returns   eFlash_OK if successful
 *
 *******************************************************************************/
-uint8_t FlashErase(void)
+eFlashError_t FlashErase(void)
 {
     uint32_t flashWait = BootTIMEOUT;
     uint32_t flashAdr = (uint32_t)BSP_ABSOLUTE_APP_START;
@@ -129,7 +131,7 @@ uint8_t FlashErase(void)
     {
         if(!(flashWait--))
         {
-            return 0;
+            return eFlash_WriteTimeOut;
         }
     }
     for(uint8_t i = 0; i < FlashSettings.TOTALPages; i++)
@@ -144,18 +146,18 @@ uint8_t FlashErase(void)
         {
             if(!(flashWait--))
             {
-                return 0;
+                return eFlash_WriteTimeOut;
             }
         }
         FLASH->CR &= ~FLASH_CR_PER;
         if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
         {
             FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-            return 0;
+            return eFlash_EraseError;
         }
         flashAdr = flashAdr + BSP_FLASH_PAGE_SIZE_BYTES;
     }
-    return 1;
+    return eFlash_OK;
 }
 
 /******************************************************************************/
@@ -171,17 +173,15 @@ void FlashLock(void)
 
 /******************************************************************************/
 /**
-* uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
+* eFlashError_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
 * @brief Write 4 bytes firmware parameters (i.e. FW crc and length) to a fixed 
 *        Flash address.
 *
 * @param[in] fwParam firmware parameters to be written to flash
-* @returns   1 if successful
-*            or
-*            0 if an error occurs.
+* @returns   eFlash_OK if successful
 *
 *******************************************************************************/
-uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
+eFlashError_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
 {
     uint32_t flashWait = BootTIMEOUT;
     uint16_t *ad = (uint16_t *)FlashSettings.CRCinFlash;
@@ -193,14 +193,14 @@ uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
     {
         if(!(flashWait--))
         {
-            return 0;
+            return eFlash_WriteTimeOut;
         }
     }
     FLASH->CR &= ~FLASH_CR_PG;
     if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
     {
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-        return 0;
+        return eFlash_WriteError;
     }
     ad = (uint16_t *)FlashSettings.LENinFlash;
     /* Write FW length */
@@ -211,42 +211,40 @@ uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam)
     {
         if(!(flashWait--))
         {
-            return 0;
+            return eFlash_WriteTimeOut;
         }
     }
     FLASH->CR &= ~FLASH_CR_PG;
     if((FLASH->SR & (FLASH_SR_PGERR | FLASH_SR_WRPRTERR)) != 0)
     {
         FLASH->SR |= FLASH_SR_PGERR | FLASH_SR_WRPRTERR;
-        return 0;
+        return eFlash_WriteError;
     }
         
     /** Now start verification immidiately */
     ad = (uint16_t*)FlashSettings.CRCinFlash;
     if(*ad != fwParam.u16FWCRC)
     {
-        return 0;
+        return eFlash_ReadError;
     }
     ad = (uint16_t*)FlashSettings.LENinFlash;
     if(*ad != fwParam.u16FWLen)
     {
-        return 0;
+        return eFlash_ReadError;
     }
-    return 1;
+    return eFlash_OK;
 }
 
 /******************************************************************************/
 /**
-* uint8_t FlashVerifyFirmware(void)
+* eFlashError_t FlashVerifyFirmware(void)
 * @brief Verify firmware in Flash by comparing the stored crc with the 
 *        calculated crc.
 *
-* @returns   1 if matches
-*            or
-*            0 if doesn't match.
+* @returns   eFlash_OK if matches
 *
 *******************************************************************************/
-uint8_t FlashVerifyFirmware(void)
+eFlashError_t FlashVerifyFirmware(void)
 {
     volatile uint16_t i = 0;
     uint32_t temp32 = *(uint32_t *)FlashSettings.CRCinFlash;
@@ -260,7 +258,7 @@ uint8_t FlashVerifyFirmware(void)
     /** Check if the length is within flash range or the read flash will fail */
     if(lenFromHost > (FlashSettings.CRCinFlash - BSP_ABSOLUTE_APP_START))
     {
-        return 0;
+        return eFlash_AddressError;
     }
 
     /* Calculate local crc */
@@ -273,7 +271,7 @@ uint8_t FlashVerifyFirmware(void)
     }
     if(CRCtemp == crcFromHost)
     {
-        return 1;
+        return eFlash_OK;
     }
-    return 0;
+    return eFlash_ReadError;
 }

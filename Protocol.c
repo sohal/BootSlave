@@ -19,7 +19,7 @@
 /* ***************** Modul global data segment ( static ) *********************/
 static tCmdUnion        Command;
 static tPldUnion        Payload;
-static tAppDataUnion    AppData;
+//static tAppDataUnion    AppData;
 static volatile uint32_t *AppVectorsInFlash = (volatile uint32_t *)BSP_ABSOLUTE_APP_START;
 static volatile uint32_t *AppVectorsInRAM   = (volatile uint32_t *)BSP_ABSOLUTE_SRAM_START;
 /* *************** Modul global constants ( static const ) ********************/
@@ -40,12 +40,12 @@ static volatile uint32_t *AppVectorsInRAM   = (volatile uint32_t *)BSP_ABSOLUTE_
 *******************************************************************************/
 eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 {
-    eFUNCTION_RETURN retVal = eFunction_Ok;
+    eFUNCTION_RETURN   retVal = eFunction_Ok;
     static tProtoState stateNow, stateNext;
-    static uint16_t pktCounter;
-    uint16_t crcCalculated = 0U;
-    static uint32_t tickCounter = 0U;
-    static uint32_t stickyTimer = 0U;
+    uint16_t          crcCalculated = 0U;
+    static uint32_t   tickCounter = 0U;
+    static uint32_t   stickyTimer = 0U;
+		eFlashError_t     eFlashError = eFlash_OK;
 	
     switch(stateNow)
     {
@@ -78,7 +78,8 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             {
                 if(Command.receivedvalue == eCMD_EraseFlash)
                 {
-                    if(FlashErase())
+                    eFlashError = FlashErase();
+                    if(eFlash_OK == eFlashError)
                     {
                         stateNext = eWriteMemory;
                         Command.returnValue = eRES_OK;
@@ -98,7 +99,6 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 {
                     stateNext = ePayloadReceive;
                     Payload.packet.u16SeqCnt = 0xFFFFU;
-                    pktCounter = 0;
                     Command.returnValue = eRES_OK;
                     pBSP->pSend(Command.bufferCMD, 2);
 										pBSP->pReset();
@@ -114,66 +114,49 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 tickCounter = 0;
             }
 
-//            if(Payload.packet.u16CRC == 0xFFFFU)
-//            {
-//                if(Payload.packet.u16SeqCnt == 0xFFFFU)
-//                {
-//                    if(Payload.packet.u8Data[0] == (uint8_t)(eCMD_WriteCRC & 0x00FFU))
-//                    {
-//                        if(Payload.packet.u8Data[1] == (uint8_t)((eCMD_WriteCRC >> 8) & 0x00FFU))
-//                        {
-//                            if(tickCounter > pBSP->TwoBytesTicks)
-//                            {
-//                                AppData.Firmware.u16FWCRC = 0xFFFFU;
-//                                AppData.Firmware.u16FWLen = 0xFFFFU;
-//                                stateNext = eWriteAppCRC;
-//                                pBSP->pReset();
-//                                Command.returnValue = eRES_OK;
-//                                pBSP->pSend(Command.bufferCMD,2);
-//                            }else
-//                            {
-//                                tickCounter++;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
             break;
 
         case ePayloadCheck:
             crcCalculated = CRCCalc16(Payload.packet.u8Data, 66U, 0);
             if(crcCalculated == Payload.packet.u16CRC)
             {
-                if(FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt))
+                eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt); 
+                if(eFlash_OK == eFlashError)
                 {
                     Command.returnValue = eRES_OK;
-										pktCounter = Payload.packet.u16SeqCnt++;
+                    stateNext = ePayloadReceive;
+                    Payload.packet.u16SeqCnt = 0xFFFFU;
+                    Payload.packet.u16CRC = 0xFFFFU;
+                    crcCalculated = 0x0000U;
+                    pBSP->pSend(Command.bufferCMD, 2);
+                }
+                else if(eFlash_LastAddress == eFlashError)
+                {
+                    Command.returnValue = eRES_OK;
+                    stateNext = eFinishUpdate;
+                    Payload.packet.u16SeqCnt = 0xFFFFU;
+                    Payload.packet.u16CRC = 0xFFFFU;
+                    crcCalculated = 0x0000U;
+                    pBSP->pSend(Command.bufferCMD, 2);
+                }
+                else
+                {
+                    Command.returnValue = eRES_Error;
+                    stateNext = ePayloadReceive;
+                    Payload.packet.u16SeqCnt = 0xFFFFU;
+                    Payload.packet.u16CRC = 0xFFFFU;
+                    crcCalculated = 0x0000U;
+                    pBSP->pSend(Command.bufferCMD, 2);
                 }
             }else
             {
-								pBSP->pReset();
+                pBSP->pReset();
                 Command.returnValue = eRES_Error;
-            }
-
-            stateNext = ePayloadReceive;
-            Payload.packet.u16SeqCnt = 0xFFFFU;
-            Payload.packet.u16CRC = 0xFFFFU;
-						crcCalculated = 0x0000U;
-            pBSP->pSend(Command.bufferCMD, 2);
-            break;
-
-        case eWriteAppCRC:
-            retVal = pBSP->pRecv(AppData.bufferData, 4);
-            if(retVal == eFunction_Ok)
-            {
-                Command.returnValue = eRES_Error;
-                if(FlashWriteFWParam(AppData.Firmware))
-                {
-                    stateNext = eFinishUpdate;
-                    pBSP->pReset();
-                    Command.returnValue = eRES_OK;
-                }
-                pBSP->pSend(Command.bufferCMD,2);
+                stateNext = ePayloadReceive;
+                Payload.packet.u16SeqCnt = 0xFFFFU;
+                Payload.packet.u16CRC = 0xFFFFU;
+                crcCalculated = 0x0000U;
+                pBSP->pSend(Command.bufferCMD, 2);
             }
             break;
 
@@ -187,7 +170,8 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 
         case eFlashVerifyApplication:
             Command.returnValue = eRES_Abort;
-            if(FlashVerifyFirmware())
+            eFlashError = FlashVerifyFirmware();
+            if(eFlash_OK == eFlashError)
             {
                 Command.returnValue = eRES_OK;
                 stateNext = eStartAppCMD;
@@ -239,7 +223,6 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
         if(stickyTimer > pBSP->BootTimeoutTicks)
         {
             stateNext = eDefaultState;
-            // sohal NVIC_SystemReset();
             stickyTimer = 0U;
         }
     }else

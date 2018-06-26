@@ -21,16 +21,26 @@ typedef struct myFlash{
     uint32_t    LENinFlash;
     uint32_t    TOTALPages;
 }tFlashLimits;
+
+typedef enum flasherrors{
+		eFlash_OK,
+		eFlash_AddressError,
+		eFlash_LastAddress,
+		eFlash_WriteTimeOut,
+		eFlash_WriteError,
+		eFlash_ReadError,
+		eFlash_EraseError
+}eFlashError_t;
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
 /*******************************************************************************/
 void FlashInit(tBSPType BSPType);
-uint8_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo);
-uint8_t FlashErase(void);
+eFlashError_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo);
+eFlashError_t FlashErase(void);
 void FlashLock(void);
-uint8_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
-uint8_t FlashVerifyFirmware(void);
+eFlashError_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
+eFlashError_t FlashVerifyFirmware(void);
 
 #endif
 
