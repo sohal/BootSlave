@@ -147,27 +147,14 @@ void SpiSend(uint8_t *pTxData, uint16_t size)
 eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
 {
 		volatile uint16_t tmp;
-		static uint16_t timeout = 0U;
     eFUNCTION_RETURN retVal = eFunction_Timeout;
 
     if((SPI1->SR & SPI_SR_RXNE) == SPI_SR_RXNE)
     {
         pRxData[index] = (uint8_t)SPI1->DR;
         index++;
-				timeout = 0U;
     }
-		else
-		{
-				if(size > 2U)
-				{
-						timeout++;
-						if(timeout > 0x1FFU)
-						{
-								timeout = 0;
-								SpiReset();
-						}
-			  }
-		}
+
 
     if(index >= size)
     {
