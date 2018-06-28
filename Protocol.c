@@ -107,54 +107,35 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 
         case ePayloadReceive:
             retVal = pBSP->pRecv(Payload.bufferPLD, sizeof(tPldUnion));
+            stateNext = ePayloadReceive;
             if(retVal == eFunction_Ok)
             {
-                stateNext = ePayloadCheck;
-                tickCounter = 0;
-            }
-
-            break;
-
-        case ePayloadCheck:
-            crcCalculated = CRCCalc16(Payload.packet.u8Data, 66U, 0);
-            if(crcCalculated == Payload.packet.u16CRC)
-            {
-                eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt); 
-                if(eFlash_OK == eFlashError)
+                crcCalculated = CRCCalc16(Payload.packet.u8Data, 66U, 0);
+                if(crcCalculated == Payload.packet.u16CRC)
                 {
-                    Command.returnValue = eRES_OK;
-                    stateNext = ePayloadReceive;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
-                }
-                else if(eFlash_LastAddress == eFlashError)
-                {
-                    Command.returnValue = eRES_OK;
-                    stateNext = eFinishUpdate;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
+                    eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt); 
+                    if(eFlash_OK == eFlashError)
+                    {
+                        Command.returnValue = eRES_OK;
+                    }
+                    else if(eFlash_LastAddress == eFlashError)
+                    {
+                        Command.returnValue = eRES_OK;
+                        stateNext = eFinishUpdate;
+                    }
+                    else
+                    {
+                        Command.returnValue = eRES_Error;
+                    }
                 }
                 else
-                {
+                {                    
                     Command.returnValue = eRES_Error;
-                    stateNext = ePayloadReceive;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
                 }
-            }else
-            {
-                pBSP->pReset();
-                Command.returnValue = eRES_Error;
-                stateNext = ePayloadReceive;
                 Payload.packet.u16SeqCnt = 0xFFFFU;
                 Payload.packet.u16CRC = 0xFFFFU;
                 crcCalculated = 0x0000U;
+                pBSP->pReset();
                 pBSP->pSend(Command.bufferCMD, 2);
             }
             break;
@@ -217,7 +198,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
      */
     if(stateNext == stateNow)
     {
-        stickyTimer++;
+//        stickyTimer++;
         /* If the timeout has expired, we reboot the system */
         if(stickyTimer > pBSP->BootTimeoutTicks)
         {
