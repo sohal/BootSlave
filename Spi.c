@@ -8,7 +8,6 @@
 /* ***************** Header / include files ( #include ) **********************/
 #include "Spi.h"
 #include "Gpio.h"
-//#include "Timeout.h"
 #if defined (SELECT_WATCHDOG)
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
@@ -42,7 +41,7 @@ void SpiInit(tBSPType BSPType)
     BSP_TARGET_SPI_NSS_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] &= ~((uint32_t)0xF << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
     BSP_TARGET_SPI_NSS_PORT->AFR[BSP_TARGET_SPI_NSS_PIN >> 3U] |=  ((uint32_t)(GPIO_AF_0) << ((uint32_t)(((uint32_t)BSP_TARGET_SPI_NSS_PIN) & (uint32_t)0x07) << 2));
 
-		BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_CLK_PIN << 1));
+    BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_CLK_PIN << 1));
     BSP_TARGET_SPI_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_CLK_PIN << 1));
 
     BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_MISO_PIN << 1));
@@ -50,10 +49,10 @@ void SpiInit(tBSPType BSPType)
 
     BSP_TARGET_SPI_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_MOSI_PIN << 1));
-		
-		BSP_TARGET_SPI_NSS_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
+        
+    BSP_TARGET_SPI_NSS_PORT->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
     BSP_TARGET_SPI_NSS_PORT->OSPEEDR |= ((uint32_t)GPIO_Speed_Level_3 << (BSP_TARGET_SPI_NSS_PIN << 1));
-		
+        
     BSP_TARGET_SPI_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_CLK_PIN));
     BSP_TARGET_SPI_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_CLK_PIN));
 
@@ -65,7 +64,7 @@ void SpiInit(tBSPType BSPType)
 
     BSP_TARGET_SPI_NSS_PORT->OTYPER &= ~((GPIO_OTYPER_OT_0) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
     BSP_TARGET_SPI_NSS_PORT->OTYPER |= (uint16_t)(((uint16_t)GPIO_OType_PP) << ((uint16_t)BSP_TARGET_SPI_NSS_PIN));
-		
+        
     BSP_TARGET_SPI_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_CLK_PIN << 1));
     BSP_TARGET_SPI_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_CLK_PIN << 1));
 
@@ -74,7 +73,7 @@ void SpiInit(tBSPType BSPType)
 
     BSP_TARGET_SPI_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_MOSI_PIN << 1));
-		
+        
     BSP_TARGET_SPI_NSS_PORT->MODER &= ~(GPIO_MODER_MODER0 << (BSP_TARGET_SPI_NSS_PIN << 1));
     BSP_TARGET_SPI_NSS_PORT->MODER |= ((uint32_t)GPIO_Mode_AF << (BSP_TARGET_SPI_NSS_PIN << 1));
 
@@ -86,8 +85,8 @@ void SpiInit(tBSPType BSPType)
 
     BSP_TARGET_SPI_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_MOSI_PIN << 1));
     BSP_TARGET_SPI_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_MOSI_PIN << 1));
-		
-		BSP_TARGET_SPI_NSS_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
+        
+    BSP_TARGET_SPI_NSS_PORT->PUPDR &= ~(GPIO_PUPDR_PUPDR0 << (BSP_TARGET_SPI_NSS_PIN << 1));
     BSP_TARGET_SPI_NSS_PORT->PUPDR |= ((uint32_t)GPIO_PuPd_NOPULL << (BSP_TARGET_SPI_NSS_PIN << 1));
 
     /*! Enable SPI1 peripheral */
@@ -96,7 +95,7 @@ void SpiInit(tBSPType BSPType)
      *  SPI has 8 bit data word length 
      */
     SPI1->CR2 = SPI_CR2_FRXTH |
-								SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0; 
+                SPI_CR2_DS_2 | SPI_CR2_DS_1 | SPI_CR2_DS_0; 
     /*! SPI peripheral is set in slave mode */ 
     SPI1->CR1 = SPI_CR1_SPE |  /*! SPI is enabled in the hardware module */
                 SPI_CR1_CPOL;  /*! Clock polarity is set */
@@ -119,16 +118,16 @@ void SpiSend(uint8_t *pTxData, uint16_t size)
     volatile uint16_t tmp;
     uint16_t i = 0;
     while (i < size)
-		{
-				while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE);
-				*(volatile uint8_t *)&(SPI1->DR) = pTxData[i++];
-				if(SPI1->SR & SPI_SR_OVR)
-				{
-						tmp = SPI1->DR;
-						tmp = SPI1->SR;
-						(void)tmp;
-				}
-		}
+    {
+        while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE);
+        *(volatile uint8_t *)&(SPI1->DR) = pTxData[i++];
+        if(SPI1->SR & SPI_SR_OVR)
+        {
+            tmp = SPI1->DR;
+            tmp = SPI1->SR;
+            (void)tmp;
+        }
+    }
 }
 
 /******************************************************************************/
@@ -146,39 +145,39 @@ void SpiSend(uint8_t *pTxData, uint16_t size)
 *******************************************************************************/
 eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
 {
-		volatile uint16_t tmp;
-		static uint16_t timeout = 0U;
+    volatile uint16_t tmp;
+    static uint16_t timeout = 0U;
     eFUNCTION_RETURN retVal = eFunction_Timeout;
 
     if((SPI1->SR & SPI_SR_RXNE) == SPI_SR_RXNE)
     {
         pRxData[index] = (uint8_t)SPI1->DR;
         index++;
-				timeout = 0U;
+        timeout = 0U;
     }
-		else
-		{
-				if(size > 2U)
-				{
-						timeout++;
-						if(timeout > 0x1FFU)
-						{
-								timeout = 0;
-								SpiReset();
-						}
-			  }
-		}
+    else
+    {
+        if(size > 2U)
+        {
+            timeout++;
+            if(timeout > 0x1FFU)
+            {
+                timeout = 0;
+                SpiReset();
+            }
+        }
+    }
 
     if(index >= size)
     {
         index = 0;
         retVal = eFunction_Ok;
-				while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
-				{
-						tmp = SPI1->DR;
-						tmp = SPI1->SR;
-						(void)tmp;
-				}
+        while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
+        {
+            tmp = SPI1->DR;
+            tmp = SPI1->SR;
+            (void)tmp;
+        }
     }
 
     return retVal;
@@ -196,13 +195,13 @@ eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
 inline void SpiReset(void)
 {
     index = 0;
-		volatile uint16_t tmp;
-		while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
-		{
-				tmp = SPI1->DR;
-				tmp = SPI1->SR;
-				(void)tmp;
-		}
+    volatile uint16_t tmp;
+    while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
+    {
+        tmp = SPI1->DR;
+        tmp = SPI1->SR;
+        (void)tmp;
+    }
 }
 
 

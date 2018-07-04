@@ -116,7 +116,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             break;
 
         case ePayloadCheck:
-            crcCalculated = CRCCalc16(Payload.packet.u8Data, 66U, 0);
+            crcCalculated = CRCCalc16(Payload.packet.u8Data, sizeof(tPldUnion) - 2U, 0);
             if(crcCalculated == Payload.packet.u16CRC)
             {
                 eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt); 
