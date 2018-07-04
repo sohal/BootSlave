@@ -67,8 +67,8 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                     tickCounter = 0;
                 }else
                 {
-                    tickCounter++;
-                    stateNext = eDefaultState;
+                    //tickCounter++;
+                    //stateNext = eDefaultState;
                 }
             }
             break;
