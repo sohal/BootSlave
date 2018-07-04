@@ -45,7 +45,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
     static uint32_t     tickCounter = 0U;
     static uint32_t     stickyTimer = 0U;
     eFlashError_t       eFlashError = eFlash_OK;
-	
+
     switch(stateNow)
     {
         case eDefaultState:
@@ -100,7 +100,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                     Payload.packet.u16SeqCnt = 0xFFFFU;
                     Command.returnValue = eRES_OK;
                     pBSP->pSend(Command.bufferCMD, 2);
-										pBSP->pReset();
+                    pBSP->pReset();
                 }
             }
             break;
@@ -112,14 +112,13 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                 stateNext = ePayloadCheck;
                 tickCounter = 0;
             }
-
             break;
 
         case ePayloadCheck:
             crcCalculated = CRCCalc16(Payload.packet.u8Data, sizeof(tPldUnion) - 2U, 0);
             if(crcCalculated == Payload.packet.u16CRC)
             {
-                eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt); 
+                eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt);
                 if(eFlash_OK == eFlashError)
                 {
                     Command.returnValue = eRES_OK;
