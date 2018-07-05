@@ -37,7 +37,7 @@ static GPIO_TypeDef *pGPIO_USART = NULL;
 *              based bsp types handled.
 *
 *******************************************************************************/
-void Usart1Init(tBSPType BSPType)
+eBSPError_t Usart1Init(tBSPType BSPType)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 
@@ -86,6 +86,7 @@ void Usart1Init(tBSPType BSPType)
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
     USART1->BRR = __USART_BRR(SystemCoreClock, Baud);  
     USART1->CR1 = USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;  // 8N1
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
@@ -97,14 +98,24 @@ void Usart1Init(tBSPType BSPType)
 * @param[in] size number of bytes
 *
 *******************************************************************************/
-void Usart1Send(uint8_t *pTxData, const uint16_t size)
+eBSPError_t Usart1Send(uint8_t *pTxData, const uint16_t size)
 {
+    uint32_t usartWait;
     uint16_t i = 0U;
     while(i < size)
     {
-        while((USART1->ISR & USART_ISR_TXE) == 0);
+        /** Setup busy wait timer for transmission */
+        usartWait = BootTIMEOUT; 
+        while((USART1->ISR & USART_ISR_TXE) == 0)
+        {
+            if(!(usartWait--))
+            {
+                return(eBSP_XmitTimeOut);        /** Return if the busy wait timer expires */
+            }
+        }
         USART1->TDR = pTxData[i++];
     }
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
@@ -122,9 +133,9 @@ void Usart1Send(uint8_t *pTxData, const uint16_t size)
 *             eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
+eBSPError_t Usart1Recv(uint8_t *pRxData, const uint16_t size)
 {
-    eFUNCTION_RETURN retVal = eFunction_Timeout;
+    eBSPError_t retVal = eBSP_Busy;
     
     if(USART1->ISR & USART_ISR_RXNE)
     {
@@ -135,7 +146,7 @@ eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
     if(index >= size)
     {
         index = 0;
-        retVal = eFunction_Ok;
+        retVal = eBSP_OK;
     }
     return retVal;
 }
@@ -149,9 +160,10 @@ eFUNCTION_RETURN Usart1Recv(uint8_t *pRxData, const uint16_t size)
 * @returns    none
 *
 *******************************************************************************/
-inline void Usart1Reset(void)
+eBSPError_t Usart1Reset(void)
 {
     index = 0;
+    return(eBSP_OK);
 }
 
 #endif // SELECT_TORQUE || SELECT_PILOT

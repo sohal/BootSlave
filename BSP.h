@@ -112,17 +112,27 @@ typedef enum bsptype {
     BSP_CAN
 }tBSPType;
 
+/** eBSPError_t errors of the BSP Interface */
+typedef enum bsperrors{
+    eBSP_OK = 0U,
+    eBSP_RecvTimeOut,
+    eBSP_XmitTimeOut,
+    eBSP_Busy
+}eBSPError_t;
+
 typedef struct  {
     tBSPType BSP_Type;
-    void (*pInit)(const tBSPType);
-    void (*pSend)(uint8_t *, uint16_t);
-    eFUNCTION_RETURN (*pRecv)(uint8_t *, uint16_t);
-    void (*pReset)(void);
+    eBSPError_t (*pInit)(const tBSPType);
+    eBSPError_t (*pSend)(uint8_t *, uint16_t);
+    eBSPError_t (*pRecv)(uint8_t *, uint16_t);
+    eBSPError_t (*pReset)(void);
     uint32_t BootTimeoutTicks;
     uint32_t AppStartTicks;
     uint32_t CommDoneTicks;
     uint32_t TwoBytesTicks;
 }tBSPStruct;
+
+
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/

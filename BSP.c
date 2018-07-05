@@ -20,9 +20,9 @@
 /* **************** Global constant definitions ( const ) *********************/
 /* ***************** Modul global data segment ( static ) *********************/
 static tBSPStruct gIF;
-static void TorqueSensorCoreClockInit(void);
-static void WatchdogCoreClockInit(void);
-static void WatchdogGPIOInit(void);
+void TorqueSensorCoreClockInit(void);
+void WatchdogCoreClockInit(void);
+void WatchdogGPIOInit(void);
 /******************************************************************************/
 /**
 * tBSPStruct* BSP_Init(void)

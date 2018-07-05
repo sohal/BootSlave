@@ -19,13 +19,14 @@ static uint16_t index = 0U;
 /* **************** Local func/proc prototypes ( static ) *********************/
 /******************************************************************************/
 /**
-* void SpiInit(tBSPType)
+* eBSPError_t SpiInit(tBSPType)
 * @brief Configure SPI1 (STM32F031:PA4(NSS),PA7(MOSI),PA6(MISO),PA5(SCK)) and
 *        initialze variables.
 * @param[in] tBSPType The type of target to be configured according to BSP
+* @returns eBSP_OK 
 *
 *******************************************************************************/
-void SpiInit(tBSPType BSPType)
+eBSPError_t SpiInit(tBSPType BSPType)
 {
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN | RCC_AHBENR_GPIOBEN;
 
@@ -99,6 +100,8 @@ void SpiInit(tBSPType BSPType)
     /*! SPI peripheral is set in slave mode */ 
     SPI1->CR1 = SPI_CR1_SPE |  /*! SPI is enabled in the hardware module */
                 SPI_CR1_CPOL;  /*! Clock polarity is set */
+
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
@@ -113,41 +116,53 @@ void SpiInit(tBSPType BSPType)
 *            eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-void SpiSend(uint8_t *pTxData, uint16_t size)
+eBSPError_t SpiSend(uint8_t *pTxData, uint16_t size)
 {
-    volatile uint16_t tmp;
-    uint16_t i = 0;
+    volatile uint16_t   tmp16;
+    uint32_t            bspWait = BootTIMEOUT;
+    uint16_t            i = 0U;
+    
     while (i < size)
     {
-        while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE);
+        /* Reload the busy wait timeout */
+        bspWait = BootTIMEOUT;
+        while((SPI1->SR & SPI_SR_TXE) != SPI_SR_TXE)
+        {
+            if(!(bspWait--))
+            {
+                /** Return if the busy wait timer expires */
+                return(eBSP_XmitTimeOut);
+            }
+        }
         *(volatile uint8_t *)&(SPI1->DR) = pTxData[i++];
         if(SPI1->SR & SPI_SR_OVR)
         {
-            tmp = SPI1->DR;
-            tmp = SPI1->SR;
-            (void)tmp;
+            tmp16 = SPI1->DR;
+            tmp16 = SPI1->SR;
+            (void)tmp16;
         }
     }
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
 /**
-* eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
+* eBSPError_t SpiRecv(uint8_t *pRxData, uint16_t size)
 *
 * @brief Read from SPI1.
 *
 * @param[out] pRxData pointer to 68 bytes data
 * @param[in]  size number of bytes
-* @returns    eFunction_Ok if successful
+* @returns    eBSP_OK if successful
 *             or
-*             eFunction_Error if timeout error occurs.
+*             eBSP_RecvTimeOut if timeout error occurs.
+*             eBSP_Busy if the polling is ongoing for new data on interface
 *
 *******************************************************************************/
-eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
+eBSPError_t SpiRecv(uint8_t *pRxData, uint16_t size)
 {
-    volatile uint16_t tmp;
-    static uint16_t timeout = 0U;
-    eFUNCTION_RETURN retVal = eFunction_Timeout;
+    volatile uint16_t   tmp;
+    static uint16_t     timeout = 0U;
 
     if((SPI1->SR & SPI_SR_RXNE) == SPI_SR_RXNE)
     {
@@ -164,44 +179,46 @@ eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size)
             {
                 timeout = 0;
                 SpiReset();
+                return(eBSP_RecvTimeOut);
             }
         }
     }
 
     if(index >= size)
     {
-        index = 0;
-        retVal = eFunction_Ok;
+        index = 0U;
         while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
         {
             tmp = SPI1->DR;
             tmp = SPI1->SR;
             (void)tmp;
         }
+        return(eBSP_OK);
     }
-
-    return retVal;
+    return(eBSP_Busy);
 }
 
 /******************************************************************************/
 /**
-* void SpiReset(void)
+* eBSPError_t SpiReset(void)
 *
 * @brief Reset receive pointer index
 *
-* @returns    none
+* @returns    eBSP_OK if successful
 *
 *******************************************************************************/
-inline void SpiReset(void)
+eBSPError_t SpiReset(void)
 {
     index = 0;
     volatile uint16_t tmp;
+    
     while((SPI1->SR & SPI_SR_OVR) == SPI_SR_OVR)
     {
         tmp = SPI1->DR;
         tmp = SPI1->SR;
         (void)tmp;
     }
+    return(eBSP_OK);
 }
 
 

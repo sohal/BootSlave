@@ -29,18 +29,12 @@ typedef union myPayload{
     uint8_t         bufferPLD[68];
 }tPldUnion;
 
-typedef union myAppData{
-    tFIRMWARE_PARAM Firmware;
-    uint8_t         bufferData[4];
-}tAppDataUnion;
-
 typedef enum {
     eDefaultState = 0,
     eFlashEraseCMD,
     eWriteMemory,
     ePayloadReceive,
     ePayloadCheck,
-    eWriteAppCRC,
     eFinishUpdate,
     eFlashVerifyApplication,
     eStartAppCMD
@@ -48,6 +42,6 @@ typedef enum {
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *);
+uint32_t ProtocolSM_Run(const tBSPStruct *);
 
 #endif

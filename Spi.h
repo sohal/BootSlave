@@ -21,10 +21,10 @@
 /* ***************** Global data declarations ( extern ) **********************/
 /* ***** External parameter / constant declarations ( extern const ) **********/
 /* ********************** Global func/proc prototypes *************************/
-void SpiInit(tBSPType BSPType);
-void SpiSend(uint8_t *pTxData, uint16_t size);
-void SpiReset(void);
-eFUNCTION_RETURN SpiRecv(uint8_t *pRxData, uint16_t size);
+eBSPError_t SpiInit(tBSPType BSPType);
+eBSPError_t SpiSend(uint8_t *pTxData, uint16_t size);
+eBSPError_t SpiReset(void);
+eBSPError_t SpiRecv(uint8_t *pRxData, uint16_t size);
 
 #endif // SPI_H_
 

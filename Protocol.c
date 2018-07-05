@@ -32,31 +32,31 @@ static volatile uint32_t *AppVectorsInRAM   = (volatile uint32_t *)BSP_ABSOLUTE_
 *            the selected BSP.
 *
 * @param[in] contant pointer to the BSP structure decided as per Hardware
-* @returns   eFunction_OK if all ok
+* @returns   eBSP_OK (0) if all ok
 *            or
 *            error otherwise.
 *
 *******************************************************************************/
-eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
+uint32_t ProtocolSM_Run(const tBSPStruct *pBSP)
 {
-    eFUNCTION_RETURN    retVal = eFunction_Ok;
     static tProtoState  stateNow, stateNext;
     uint16_t            crcCalculated = 0U;
     static uint32_t     tickCounter = 0U;
     static uint32_t     stickyTimer = 0U;
     eFlashError_t       eFlashError = eFlash_OK;
+    eBSPError_t         retVal = eBSP_Busy;
 
     switch(stateNow)
     {
         case eDefaultState:
-            if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
+            if(eBSP_OK == pBSP->pRecv(Command.bufferCMD, 2U))
             {
-                if(Command.receivedvalue == eCMD_BootloadMode)
+                if(eCMD_BootloadMode == Command.receivedvalue)
                 {
                     stateNext = eFlashEraseCMD;
                     tickCounter = 0;
                     Command.returnValue = eRES_Ready;
-                    pBSP->pSend(Command.bufferCMD, 2);
+                    pBSP->pSend(Command.bufferCMD, 2U);
                 }
             }else
             {
@@ -73,9 +73,9 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             break;
 
         case eFlashEraseCMD:
-            if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
+            if(eBSP_OK == pBSP->pRecv(Command.bufferCMD, 2U))
             {
-                if(Command.receivedvalue == eCMD_EraseFlash)
+                if(eCMD_EraseFlash == Command.receivedvalue)
                 {
                     eFlashError = FlashErase();
                     if(eFlash_OK == eFlashError)
@@ -86,15 +86,15 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
                     {
                         Command.returnValue = eRES_Error;
                     }
-                    pBSP->pSend(Command.bufferCMD, 2);
+                    pBSP->pSend(Command.bufferCMD, 2U);
                 }
             }
             break;
 
         case eWriteMemory:
-            if(pBSP->pRecv(Command.bufferCMD, 2) == eFunction_Ok)
+            if(eBSP_OK == pBSP->pRecv(Command.bufferCMD, 2U))
             {
-                if(Command.receivedvalue == eCMD_WriteMemory)
+                if(eCMD_WriteMemory == Command.receivedvalue)
                 {
                     stateNext = ePayloadReceive;
                     Payload.packet.u16SeqCnt = 0xFFFFU;
@@ -106,8 +106,7 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             break;
 
         case ePayloadReceive:
-            retVal = pBSP->pRecv(Payload.bufferPLD, sizeof(tPldUnion));
-            if(retVal == eFunction_Ok)
+            if(eBSP_OK == pBSP->pRecv(Payload.bufferPLD, sizeof(tPldUnion)))
             {
                 stateNext = ePayloadCheck;
             }
@@ -141,10 +140,12 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             break;
 
         case eFinishUpdate:
-            retVal = pBSP->pRecv(Command.bufferCMD, 2);
-            if((retVal == eFunction_Ok) && (Command.receivedvalue == eCMD_Finish))
+            if(eBSP_OK == pBSP->pRecv(Command.bufferCMD, 2U))
             {
-                stateNext = eFlashVerifyApplication;
+                if(eCMD_Finish == Command.receivedvalue)
+                {
+                    stateNext = eFlashVerifyApplication;
+                }
             }
             break;
 
@@ -213,5 +214,5 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
 
     stateNow = stateNext;
 
-    return(retVal);
+    return((uint32_t)retVal);
 }

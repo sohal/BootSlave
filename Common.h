@@ -9,16 +9,6 @@
 /* ***************** Header / include files ( #include ) **********************/
 /* *************** Constant / macro definitions ( #define ) *******************/
 /* ********************* Type definitions ( typedef ) *************************/
-/**
-* @enum eFUNCTION_RETURN
-* @brief Return value of the transmit functions.
-*/
-typedef enum
-{
-    eFunction_Ok       = 0, /**< Everything is fine */
-    eFunction_Timeout  = 1, /**< Polling timeout    */
-    eFunction_Error    = 2  /**< Data lost          */
-}eFUNCTION_RETURN;
 
 #define MASK_BIT_0                (1UL <<  0U)
 #define MASK_BIT_1                (1UL <<  1U)

@@ -39,7 +39,6 @@ void FlashInit(tBSPType BSPType);
 eFlashError_t FlashWrite(uint8_t* buf, const uint16_t size, const uint16_t pktNo);
 eFlashError_t FlashErase(void);
 void FlashLock(void);
-eFlashError_t FlashWriteFWParam(tFIRMWARE_PARAM fwParam);
 eFlashError_t FlashVerifyFirmware(void);
 
 #endif

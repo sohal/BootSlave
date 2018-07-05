@@ -32,7 +32,7 @@ static GPIO_TypeDef *pGPIO_CAN = NULL;
 * @brief Configure CAN
 *
 *******************************************************************************/
-void CanInit(tBSPType BSPType)
+eBSPError_t CanInit(tBSPType BSPType)
 {
     uint32_t canWait;
 
@@ -77,7 +77,7 @@ void CanInit(tBSPType BSPType)
     {
         if(!(canWait--))
         {
-            return;        /** Return if the busy wait timer expires todo needs a proper error code */
+            return(eBSP_Busy);        /** Return if the busy wait timer expires todo needs a proper error code */
         }
     }
     /** Exit sleep mode */
@@ -110,9 +110,10 @@ void CanInit(tBSPType BSPType)
     {
         if(!(canWait--))
         {
-            return;        /** Return if the busy wait timer expires */
+            return(eBSP_Busy);        /** Return if the busy wait timer expires */
         }
     }
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
@@ -127,7 +128,7 @@ void CanInit(tBSPType BSPType)
 * LR                        HR
 * D3 D2 D1 D0               D7 D6 D5 D4
 *******************************************************************************/
-void CanSend(uint8_t *pTxData, uint16_t size)
+eBSPError_t CanSend(uint8_t *pTxData, uint16_t size)
 {
     uint32_t     i,iLimit;
     tCANData     TxData;
@@ -161,7 +162,7 @@ void CanSend(uint8_t *pTxData, uint16_t size)
         {
             if(!(canWait--))
             {
-                return;        /** Return if the busy wait timer expires */
+                return(eBSP_XmitTimeOut);        /** Return if the busy wait timer expires */
             }
         }
 
@@ -181,7 +182,7 @@ void CanSend(uint8_t *pTxData, uint16_t size)
         {
             if(!(canWait--))
             {
-                return;        /** Return if the busy wait timer expires */
+                return(eBSP_XmitTimeOut);        /** Return if the busy wait timer expires */
             }
         }
 
@@ -189,11 +190,12 @@ void CanSend(uint8_t *pTxData, uint16_t size)
 
         size -= iLimit;
     }while(size);
+    return(eBSP_OK);
 }
 
 /******************************************************************************/
 /**
-* eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
+* eBSPError_t CanRecv(uint8_t *pRxData, const uint16_t size)
 *
 * @brief Read from CAN bus
 *
@@ -206,9 +208,9 @@ void CanSend(uint8_t *pTxData, uint16_t size)
 *             eFunction_Timeout if an timeout error occurs.
 *
 *******************************************************************************/
-eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
+eBSPError_t CanRecv(uint8_t *pRxData, const uint16_t size)
 {
-    eFUNCTION_RETURN retVal = eFunction_Timeout;
+    eBSPError_t retVal = eBSP_Busy;
     uint32_t    temp32U = 0U;
     uint32_t    i;
     tCANData     RxData;
@@ -247,13 +249,13 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
                     {
                         /** Reset counter and exit successfully */
                         index = 0;
-                        retVal = eFunction_Ok;
+                        retVal = eBSP_OK;
                         break;
                     }
                 }
             }else
             {
-                retVal = eFunction_Error;
+                retVal = eBSP_Busy;
             }
         }
         /** Release FIFO */
@@ -272,9 +274,10 @@ eFUNCTION_RETURN CanRecv(uint8_t *pRxData, const uint16_t size)
 * @returns    none
 *
 *******************************************************************************/
-inline void CanReset(void)
+eBSPError_t CanReset(void)
 {
     index = 0;
+    return(eBSP_OK);
 }
 
 #endif // SELECT_CAN

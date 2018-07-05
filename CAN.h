@@ -30,10 +30,10 @@ typedef union {
     uint8_t     Byte[8];
 }tCANData;
 
-void CanInit(tBSPType BSPType);
-void CanSend(uint8_t *pTxData, uint16_t size);
-void CanReset(void);
-eFUNCTION_RETURN CanRecv(uint8_t *pRxData, uint16_t size);
+eBSPError_t CanInit(tBSPType BSPType);
+eBSPError_t CanSend(uint8_t *pTxData, uint16_t size);
+eBSPError_t CanReset(void);
+eBSPError_t CanRecv(uint8_t *pRxData, uint16_t size);
 
 #endif // CAN_H_
 
