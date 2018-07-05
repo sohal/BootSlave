@@ -110,52 +110,34 @@ eFUNCTION_RETURN ProtocolSM_Run(const tBSPStruct *pBSP)
             if(retVal == eFunction_Ok)
             {
                 stateNext = ePayloadCheck;
-                tickCounter = 0;
             }
             break;
 
         case ePayloadCheck:
             crcCalculated = CRCCalc16(Payload.packet.u8Data, sizeof(tPldUnion) - 2U, 0);
+            Command.returnValue = eRES_OK;
+            stateNext = ePayloadReceive;
             if(crcCalculated == Payload.packet.u16CRC)
             {
                 eFlashError = FlashWrite(Payload.bufferPLD, BLOCK_SIZE, Payload.packet.u16SeqCnt);
-                if(eFlash_OK == eFlashError)
-                {
-                    Command.returnValue = eRES_OK;
-                    stateNext = ePayloadReceive;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
-                }
-                else if(eFlash_LastAddress == eFlashError)
-                {
-                    Command.returnValue = eRES_OK;
-                    stateNext = eFinishUpdate;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
-                }
-                else
+                if(eFlash_OK != eFlashError)
                 {
                     Command.returnValue = eRES_Error;
-                    stateNext = ePayloadReceive;
-                    Payload.packet.u16SeqCnt = 0xFFFFU;
-                    Payload.packet.u16CRC = 0xFFFFU;
-                    crcCalculated = 0x0000U;
-                    pBSP->pSend(Command.bufferCMD, 2);
+                    if(eFlash_LastAddress == eFlashError)
+                    {
+                        Command.returnValue = eRES_OK;
+                        stateNext = eFinishUpdate;
+                    }
                 }
             }else
             {
                 pBSP->pReset();
                 Command.returnValue = eRES_Error;
-                stateNext = ePayloadReceive;
-                Payload.packet.u16SeqCnt = 0xFFFFU;
-                Payload.packet.u16CRC = 0xFFFFU;
-                crcCalculated = 0x0000U;
-                pBSP->pSend(Command.bufferCMD, 2);
             }
+            Payload.packet.u16SeqCnt = 0xFFFFU;
+            Payload.packet.u16CRC = 0xFFFFU;
+            crcCalculated = 0U;
+            pBSP->pSend(Command.bufferCMD, 2);
             break;
 
         case eFinishUpdate:

@@ -79,13 +79,14 @@
 #define BSP_TARGET_CAN_ID_BASE              (8U)
 
 /** Interface Ports, Pins and configuration in targets for SPI bus communication */
+/** Definitions for SPI1 on STM32F0308-DISCO board */
 #define BSP_TARGET_SPI_PORT                 (GPIOA)
 #define BSP_TARGET_SPI_NSS_PORT             (GPIOA)
 #define BSP_TARGET_SPI_NSS_PIN              (4U)
 #define BSP_TARGET_SPI_CLK_PIN              (5U)
 #define BSP_TARGET_SPI_MISO_PIN             (6U)
 #define BSP_TARGET_SPI_MOSI_PIN             (7U)
-
+/** Definitions for SPI1 on Joint Electronics */
 //#define BSP_TARGET_SPI_PORT                 (GPIOB)
 //#define BSP_TARGET_SPI_NSS_PORT             (GPIOA)
 //#define BSP_TARGET_SPI_NSS_PIN              (15U)
