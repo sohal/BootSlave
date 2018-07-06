@@ -160,14 +160,12 @@ tBSPStruct* BSP_Init(void)
             gIF.pSend   = &Usart1Send;
             gIF.pRecv   = &Usart1Recv;
             gIF.pReset  = &Usart1Reset;
-
             TorqueSensorCoreClockInit();
             break;
 
         case BSP_ExtWatchdog:
             WatchdogCoreClockInit();
             WatchdogGPIOInit();
-            
             gIF.pInit   = &SpiInit;
             gIF.pRecv   = &SpiRecv;
             gIF.pSend   = &SpiSend;
